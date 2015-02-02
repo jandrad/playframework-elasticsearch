@@ -1,4 +1,4 @@
-self: play -> elasticsearch 0.5.1
+self: play -> elasticsearch 0.6.0-eXo
 
 # Application dependencies
 
