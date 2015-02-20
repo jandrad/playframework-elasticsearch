@@ -39,7 +39,7 @@ public class ElasticSearchIndexAction implements play.libs.F.Action<ElasticSearc
 	@Override
 	public void invoke(ElasticSearchIndexEvent message) {
 		// Log Debug
-		Logger.info("Elastic Search - %s Event", message);
+		Logger.debug("Elastic Search - %s Event", message);
 
 		Client client = ElasticSearchPlugin.client();
 		Model object = message.getObject();

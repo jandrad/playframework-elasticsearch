@@ -19,7 +19,7 @@ public class RabbitMQConsumerActor extends UntypedActor {
 	@Override
 	public void onReceive(Object o) throws Exception {
 		// Log Debug
-		Logger.info("RabbitMQ Consumer Actor: %s", o);
+		Logger.debug("RabbitMQ Consumer Actor: %s", o);
 		
 		// Check Message Type
 		if ( o instanceof ElasticSearchIndexEvent ) {

@@ -266,7 +266,7 @@ public class ElasticSearchPlugin extends PlayPlugin {
 	@Override
 	public void onEvent(final String message, final Object context) {
 		// Log Debug
-		Logger.info("Received %s Event, Object: %s", message, context);
+		Logger.debug("Received %s Event, Object: %s", message, context);
 
 		if (isInterestingEvent(message) == false) {
 			return;
