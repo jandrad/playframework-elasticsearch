@@ -9,9 +9,9 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ElasticSearchFilter {
 
-    String name();
+  String name();
 
-    String typeName();
+  String typeName();
 
-    ElasticSearchSetting[] settings() default {};
+  ElasticSearchSetting[] settings() default {};
 }

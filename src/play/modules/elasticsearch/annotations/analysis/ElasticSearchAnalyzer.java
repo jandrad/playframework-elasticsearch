@@ -9,9 +9,9 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ElasticSearchAnalyzer {
 
-    String name();
+  String name();
 
-    String tokenizer();
+  String tokenizer();
 
-    String[] filtersNames() default {};
+  String[] filtersNames() default {};
 }

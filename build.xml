@@ -21,11 +21,11 @@
 
 	<target name="compile" depends="check">
 
-		<property name="ant.build.javac.source" value="1.6" />
-		<property name="ant.build.javac.target" value="1.6" />
+		<property name="ant.build.javac.source" value="1.7" />
+		<property name="ant.build.javac.target" value="1.7" />
 
 		<mkdir dir="tmp/classes" />
-		<javac srcdir="src" destdir="tmp/classes" target="1.6" debug="true"
+		<javac srcdir="src" destdir="tmp/classes" target="1.7" debug="true"
 			classpathref="project.classpath">
 		</javac>
 

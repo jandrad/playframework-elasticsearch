@@ -2,5 +2,6 @@ package play.modules.elasticsearch;
 
 
 public interface IndexEventHandler {
-	public void handle(ElasticSearchIndexEvent event);
+
+  public void handle(ElasticSearchIndexEvent event);
 }
