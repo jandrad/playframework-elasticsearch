@@ -22,10 +22,8 @@ import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.Requests;
-import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
-import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.indices.IndexCreationException;
 import play.Logger;
 import play.db.Model;
@@ -64,8 +62,7 @@ public abstract class ElasticSearchAdapter {
 
       Logger.debug("Starting Elastic Search Index %s", indexName);
       CreateIndexResponse response = client.admin().indices()
-          .create(new CreateIndexRequest(indexName)
-              .settings(Settings.builder().loadFromSource(settings.toString(), XContentType.JSON)))
+          .create(new CreateIndexRequest(indexName).settings(settings))
           .actionGet();
 
       Logger.debug("Response: %s", response);
@@ -142,6 +139,8 @@ public abstract class ElasticSearchAdapter {
       // Log Debug
       Logger.debug("Index Response: %s", response);
 
+    } catch (Exception e) {
+      Logger.error(e, "Unable to index model");
     } finally {
       if (contentBuilder != null) {
         contentBuilder.close();

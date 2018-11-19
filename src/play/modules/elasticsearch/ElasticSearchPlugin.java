@@ -101,37 +101,20 @@ public class ElasticSearchPlugin extends PlayPlugin {
   }
 
   /**
-   * Checks if is local mode.
-   *
-   * @return true, if is local mode
-   */
-  private boolean isLocalMode() {
-    try {
-      final String client = Play.configuration.getProperty("elasticsearch.client");
-      final Boolean local = Boolean
-          .getBoolean(Play.configuration.getProperty("elasticsearch.local", "true"));
-
-      if (client == null) {
-        return true;
-      }
-      if (client.equalsIgnoreCase("false") || client.equalsIgnoreCase("true")) {
-        return true;
-      }
-
-      return local;
-    } catch (final Exception e) {
-      Logger.error("Error! Starting in Local Model: %s", ExceptionUtil.getStackTrace(e));
-      return true;
-    }
-  }
-
-  /**
    * Gets the hosts.
    *
    * @return the hosts
    */
   public static String getHosts() {
     final String s = Play.configuration.getProperty("elasticsearch.client");
+    if (s == null) {
+      return "";
+    }
+    return s;
+  }
+
+  public static String getClusterName() {
+    final String s = Play.configuration.getProperty("elasticsearch.cluster.name");
     if (s == null) {
       return "";
     }
@@ -185,7 +168,7 @@ public class ElasticSearchPlugin extends PlayPlugin {
 
     // Start Node Builder
     final Builder settingsBuilder = Settings.builder();
-    // settings.put("client.transport.sniff", true);
+    settingsBuilder.put("cluster.name", getClusterName());
 
     // Import anything from play configuration that starts with elasticsearch.native.
     final Enumeration<Object> keys = Play.configuration.keys();
@@ -284,14 +267,9 @@ public class ElasticSearchPlugin extends PlayPlugin {
    */
   @Override
   public void onEvent(final String message, final Object context) {
-    // Log Debug
-    Logger.debug("Received %s Event, Object: %s", message, context);
-
     if (isInterestingEvent(message) == false) {
       return;
     }
-
-    Logger.debug("Processing %s Event", message);
 
     // Check if object is searchable
     if (MappingUtil.isSearchable(context.getClass()) == false) {
