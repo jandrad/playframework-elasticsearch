@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Map;
 import org.elasticsearch.common.xcontent.XContentBuilder;
+import play.Logger;
 import play.modules.elasticsearch.mapping.MappingUtil;
 import play.modules.elasticsearch.util.ReflectionUtil;
 
@@ -27,12 +28,16 @@ public class SimpleFieldMapper<M> extends AbstractFieldMapper<M> {
   }
 
   @Override
-  public void addToDocument(M model, XContentBuilder builder) throws IOException {
+  public void addToDocument(M model, XContentBuilder builder) {
     String field = getIndexField();
     Object value = getFieldValue(model);
 
     if (value != null) {
-      builder.field(field, value);
+      try {
+        builder.field(field, value);
+      } catch (IOException e) {
+        Logger.error(e, "Unable to map field %s with value %s", field, value);
+      }
     }
   }
 

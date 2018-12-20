@@ -1,4 +1,4 @@
-self: play -> elasticsearch 0.7
+self: play -> elasticsearch 0.7.1
 
 # Application dependencies
 
