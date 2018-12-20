@@ -15,6 +15,8 @@
  */
 package play.modules.elasticsearch.adapter;
 
+import java.lang.reflect.Field;
+import java.util.List;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequest;
@@ -27,14 +29,18 @@ import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.indices.IndexCreationException;
 import play.Logger;
 import play.db.Model;
+import play.modules.elasticsearch.annotations.ElasticSearchId;
 import play.modules.elasticsearch.mapping.MappingUtil;
 import play.modules.elasticsearch.mapping.ModelMapper;
 import play.modules.elasticsearch.util.ExceptionUtil;
+import play.modules.elasticsearch.util.ReflectionUtil;
 
 /**
  * The Class ElasticSearchAdapter.
  */
 public abstract class ElasticSearchAdapter {
+
+  private Object model;
 
   /**
    * Start index.
@@ -127,7 +133,8 @@ public abstract class ElasticSearchAdapter {
       // Define Index Name
       String indexName = mapper.getIndexName();
       String typeName = mapper.getTypeName();
-      String documentId = mapper.getDocumentId(model);
+      String documentId = getDocumentId(mapper, model);
+
       Logger.debug("Index Name: %s", indexName);
 
       contentBuilder = XContentFactory.jsonBuilder().prettyPrint();
@@ -162,9 +169,22 @@ public abstract class ElasticSearchAdapter {
     Logger.debug("Delete Model: %s", model);
     String indexName = mapper.getIndexName();
     String typeName = mapper.getTypeName();
-    String documentId = mapper.getDocumentId(model);
+    String documentId = getDocumentId(mapper, model);
     DeleteResponse response = client.prepareDelete(indexName, typeName, documentId)
         .execute().actionGet();
     Logger.debug("Delete Response: %s", response);
+  }
+
+  private static <T extends Model> String getDocumentId(ModelMapper<T> mapper, T model) {
+    //Get field to use as an id
+    List<Field> idFields = ReflectionUtil.getFieldsWithAnnotation(mapper.getModelClass(),
+        ElasticSearchId.class);
+    String documentId;
+    if (!idFields.isEmpty()) {
+      documentId = String.valueOf(ReflectionUtil.getFieldValue(model, idFields.get(0)));
+    } else {
+      documentId = mapper.getDocumentId(model);
+    }
+    return documentId;
   }
 }
