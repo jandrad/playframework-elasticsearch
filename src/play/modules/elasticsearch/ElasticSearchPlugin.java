@@ -94,6 +94,10 @@ public class ElasticSearchPlugin extends PlayPlugin {
     return client;
   }
 
+  public static boolean isEnabled() {
+    return client != null;
+  }
+
   public static void setMapperFactory(final MapperFactory factory) {
     mapperFactory = factory;
     mappers.clear();
@@ -153,18 +157,17 @@ public class ElasticSearchPlugin extends PlayPlugin {
    */
   @Override
   public void onApplicationStart() {
+    // (re-)set caches
+    mappers = new ConcurrentHashMap<>();
+    modelLookup = new ConcurrentHashMap<>();
+    indicesStarted = Collections.newSetFromMap(new HashMap<Class<?>, Boolean>());
+    ReflectionUtil.clearCache();
 
     String enabled = Play.configuration.getProperty("elasticsearch.enabled", "true");
     if (!"true".equalsIgnoreCase(enabled)) {
       Logger.info("Elasticsearch module disabled");
       return;
     }
-
-    // (re-)set caches
-    mappers = new ConcurrentHashMap<>();
-    modelLookup = new ConcurrentHashMap<>();
-    indicesStarted = Collections.newSetFromMap(new HashMap<Class<?>, Boolean>());
-    ReflectionUtil.clearCache();
 
     // Make sure it doesn't get started more than once
     if ((client != null) || started) {
