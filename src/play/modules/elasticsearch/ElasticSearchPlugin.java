@@ -15,6 +15,11 @@
  */
 package play.modules.elasticsearch;
 
+import static java.util.concurrent.TimeUnit.MINUTES;
+import static pl.allegro.tech.embeddedelasticsearch.PopularProperties.CLUSTER_NAME;
+import static pl.allegro.tech.embeddedelasticsearch.PopularProperties.HTTP_PORT;
+
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Collections;
@@ -31,6 +36,7 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.settings.Settings.Builder;
 import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
+import pl.allegro.tech.embeddedelasticsearch.EmbeddedElastic;
 import play.Logger;
 import play.Play;
 import play.PlayPlugin;
@@ -43,6 +49,7 @@ import play.modules.elasticsearch.mapping.MappingException;
 import play.modules.elasticsearch.mapping.MappingUtil;
 import play.modules.elasticsearch.mapping.ModelMapper;
 import play.modules.elasticsearch.mapping.impl.DefaultMapperFactory;
+import play.modules.elasticsearch.util.ExceptionUtil;
 import play.modules.elasticsearch.util.ReflectionUtil;
 import play.mvc.Router;
 
@@ -52,6 +59,12 @@ import play.mvc.Router;
  * The Class ElasticSearchPlugin.
  */
 public class ElasticSearchPlugin extends PlayPlugin {
+
+  private static final String EMBEDDED_ELASTIC_VERSION = "6.5.0";
+  private static final String EMBEDDED_CLUSTER_NAME = "Embedded-Elastic";
+  private static final int EMBEDDED_HTTP_PORT_VALUE = 9999;
+
+  private static EmbeddedElastic embeddedElastic = null;
 
   /**
    * The started.
@@ -101,6 +114,31 @@ public class ElasticSearchPlugin extends PlayPlugin {
   public static void setMapperFactory(final MapperFactory factory) {
     mapperFactory = factory;
     mappers.clear();
+  }
+
+  /**
+   * Checks if is local mode.
+   *
+   * @return true, if is local mode
+   */
+  private boolean isLocalMode() {
+    try {
+      final String client = Play.configuration.getProperty("elasticsearch.client");
+      final Boolean local = Boolean
+          .getBoolean(Play.configuration.getProperty("elasticsearch.local", "true"));
+
+      if (client == null) {
+        return true;
+      }
+      if (client.equalsIgnoreCase("false") || client.equalsIgnoreCase("true")) {
+        return true;
+      }
+
+      return local;
+    } catch (final Exception e) {
+      Logger.error("Error! Starting in Local Model: %s", ExceptionUtil.getStackTrace(e));
+      return true;
+    }
   }
 
   /**
@@ -192,42 +230,69 @@ public class ElasticSearchPlugin extends PlayPlugin {
     }
 
     // Check Model
-    Logger.info("Connecting Play! to Elastic Search in Client Mode");
-
-    final TransportClient c = new PreBuiltTransportClient(settingsBuilder.build());
-    if (Play.configuration.getProperty("elasticsearch.client") == null) {
-      throw new RuntimeException(
-          "Configuration required - elasticsearch.client when local model is disabled!");
-    }
-    final String[] hosts = getHosts().trim().split(",");
-    boolean done = false;
-    for (final String host : hosts) {
-      final String[] parts = host.split(":");
-      if (parts.length != 2) {
-        throw new RuntimeException("Invalid Host: " + host);
+    if (this.isLocalMode()) {
+      Logger.info("Connecting Play! to Elastic Search in embedded mode");
+      try {
+        if (embeddedElastic != null) {
+          embeddedElastic.stop();
+        }
+        embeddedElastic = EmbeddedElastic.builder()
+            .withElasticVersion(EMBEDDED_ELASTIC_VERSION)
+            .withSetting(HTTP_PORT, EMBEDDED_HTTP_PORT_VALUE)
+            .withSetting(CLUSTER_NAME, EMBEDDED_CLUSTER_NAME)
+            .withEsJavaOpts("-Xms128m -Xmx512m")
+            .withStartTimeout(2, MINUTES)
+            .withCleanInstallationDirectoryOnStop(false)
+            .build()
+            .start();
+      } catch (IOException | InterruptedException e) {
+        throw new RuntimeException("Unable to start Elastic Search in Embedded mode");
       }
-
-      String hostName = parts[0];
-      Integer port = Integer.valueOf(parts[1]);
-
-      Logger.info("Transport Client - Host: %s Port: %s", hostName, port);
-      if (port == 9200) {
-        Logger.info(
-            "Note: Port 9200 is usually used by the HTTP Transport. You might want to use 9300 instead.");
-      }
-
+      final TransportClient c = new PreBuiltTransportClient(settingsBuilder.build());
       try {
         c.addTransportAddress(
-            new TransportAddress(InetAddress.getByName(hostName), Integer.valueOf(port)));
+            new TransportAddress(InetAddress.getLocalHost(), EMBEDDED_HTTP_PORT_VALUE));
       } catch (UnknownHostException e) {
-        throw new RuntimeException("Invalid host name: " + hostName);
+        throw new RuntimeException("Invalid host for local mode");
       }
-      done = true;
+      client = c;
+    } else {
+      Logger.info("Connecting Play! to Elastic Search in client mode");
+      final TransportClient c = new PreBuiltTransportClient(settingsBuilder.build());
+      if (Play.configuration.getProperty("elasticsearch.client") == null) {
+        throw new RuntimeException(
+            "Configuration required - elasticsearch.client when local model is disabled!");
+      }
+      final String[] hosts = getHosts().trim().split(",");
+      boolean done = false;
+      for (final String host : hosts) {
+        final String[] parts = host.split(":");
+        if (parts.length != 2) {
+          throw new RuntimeException("Invalid Host: " + host);
+        }
+
+        String hostName = parts[0];
+        Integer port = Integer.valueOf(parts[1]);
+
+        Logger.info("Transport Client - Host: %s Port: %s", hostName, port);
+        if (port == 9200) {
+          Logger.info(
+              "Note: Port 9200 is usually used by the HTTP Transport. You might want to use 9300 instead.");
+        }
+
+        try {
+          c.addTransportAddress(
+              new TransportAddress(InetAddress.getByName(hostName), Integer.valueOf(port)));
+        } catch (UnknownHostException e) {
+          throw new RuntimeException("Invalid host name: " + hostName);
+        }
+        done = true;
+      }
+      if (!done) {
+        throw new RuntimeException("No Hosts Provided for Elastic Search!");
+      }
+      client = c;
     }
-    if (!done) {
-      throw new RuntimeException("No Hosts Provided for Elastic Search!");
-    }
-    client = c;
 
     // Configure current delivery mode
     setDeliveryMode(getDeliveryModeFromConfiguration());
@@ -239,6 +304,17 @@ public class ElasticSearchPlugin extends PlayPlugin {
     if (client == null) {
       throw new RuntimeException(
           "Elastic Search Client cannot be null - please check the configuration provided and the health of your Elastic Search instances.");
+    }
+  }
+
+  @Override
+  public void onApplicationStop() {
+    if (embeddedElastic != null) {
+      embeddedElastic.stop();
+    }
+
+    if (client != null) {
+      client.close();
     }
   }
 
@@ -276,7 +352,7 @@ public class ElasticSearchPlugin extends PlayPlugin {
    */
   @Override
   public void onEvent(final String message, final Object context) {
-    if (isInterestingEvent(message) == false) {
+    if (!isEnabled() || isInterestingEvent(message) == false) {
       return;
     }
 
@@ -320,6 +396,10 @@ public class ElasticSearchPlugin extends PlayPlugin {
   public <M extends Model> void index(final M model, final ElasticSearchDeliveryMode deliveryMode) {
     @SuppressWarnings("unchecked") final Class<Model> clazz = (Class<Model>) model.getClass();
 
+    if (!ElasticSearchPlugin.isEnabled()) {
+      return;
+    }
+    
     // Check if object is searchable
     if (MappingUtil.isSearchable(clazz) == false) {
       throw new IllegalArgumentException("model is not searchable");

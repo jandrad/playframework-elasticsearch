@@ -24,6 +24,7 @@ import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.Requests;
+import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.indices.IndexCreationException;
@@ -95,7 +96,7 @@ public abstract class ElasticSearchAdapter {
       Logger.debug("Create Elastic Search Type %s/%s", indexName, typeName);
       PutMappingRequest request = Requests.putMappingRequest(indexName).type(typeName);
       XContentBuilder mapping = MappingUtil.getMapping(mapper);
-      Logger.debug("Type mapping: \n %s", mapping.toString());
+      Logger.debug("Type mapping: \n %s", Strings.toString(mapping));
       request.source(mapping);
       client.admin().indices().putMapping(request).actionGet();
     } catch (IndexCreationException iaee) {

@@ -3,6 +3,7 @@ package mapping;
 import java.io.IOException;
 import java.util.Date;
 
+import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.junit.Test;
 
@@ -123,7 +124,7 @@ public class SimpleMappingTest extends MappingTest {
 		mapping.endObject();
 		mapping.endObject();
 
-		assertEquals(mapping.string(), generatedMapping.string());
+		assertEquals(Strings.toString(mapping), Strings.toString(generatedMapping));
 	}
 
 }

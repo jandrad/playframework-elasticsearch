@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
+import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.junit.Test;
 
@@ -70,7 +71,7 @@ public class CollectionMappingTest extends MappingTest {
 		mapping.endObject();
 		mapping.endObject();
 
-		assertEquals(mapping.string(), generatedMapping.string());
+		assertEquals(Strings.toString(mapping), Strings.toString(generatedMapping));
 	}
 
 	/**
@@ -112,7 +113,7 @@ public class CollectionMappingTest extends MappingTest {
 		mapping.endObject();
 		mapping.endObject();
 
-		assertEquals(mapping.string(), generatedMapping.string());
+		assertEquals(Strings.toString(mapping), Strings.toString(generatedMapping));
 	}
 
 }

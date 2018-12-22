@@ -13,7 +13,6 @@ import org.joda.time.LocalDateTime;
 import org.joda.time.base.BaseLocal;
 import org.joda.time.format.ISODateTimeFormat;
 import play.Logger;
-import play.modules.elasticsearch.ElasticSearchPlugin;
 import play.modules.elasticsearch.annotations.ElasticSearchField;
 import play.modules.elasticsearch.annotations.ElasticSearchField.Index;
 import play.modules.elasticsearch.annotations.ElasticSearchField.Store;
@@ -33,10 +32,6 @@ public abstract class MappingUtil {
    * @return true if searchable, false otherwise
    */
   public static boolean isSearchable(Class<?> clazz) {
-    if (!ElasticSearchPlugin.isEnabled()) {
-      return false;
-    }
-
     // TODO Any particular reason not to use clazz.isAnnotationPresent()?
     while (clazz != null) {
       for (Annotation a : clazz.getAnnotations()) {

@@ -2,6 +2,7 @@ package mapping;
 
 import java.io.IOException;
 
+import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.junit.Test;
 
@@ -51,7 +52,7 @@ public class ElasticSearchIgnoreTest extends MappingTest {
 		mapping.endObject();
 		mapping.endObject();
 
-		assertEquals(mapping.string(), generatedMapping.string());
+		assertEquals(Strings.toString(mapping), Strings.toString(generatedMapping));
 	}
 
 }

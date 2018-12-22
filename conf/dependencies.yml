@@ -7,3 +7,4 @@ require:
 - play -> crud
 - org.elasticsearch -> elasticsearch 6.5.0
 - org.elasticsearch.client -> transport 6.5.0
+- pl.allegro.tech -> embedded-elasticsearch 2.7.0

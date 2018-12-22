@@ -43,6 +43,10 @@ public class ReindexDatabaseJob extends Job<Void> {
 
   @Override
   public void doJob() throws Exception {
+    if (!ElasticSearchPlugin.isEnabled()) {
+      return;
+    }
+
     final Set<ManagedType<?>> types = JPA.em().getMetamodel().getManagedTypes();
     for (final ManagedType managedType : types) {
       final Class modelClass = managedType.getJavaType();
