@@ -43,7 +43,6 @@ import play.modules.elasticsearch.mapping.MappingException;
 import play.modules.elasticsearch.mapping.MappingUtil;
 import play.modules.elasticsearch.mapping.ModelMapper;
 import play.modules.elasticsearch.mapping.impl.DefaultMapperFactory;
-import play.modules.elasticsearch.util.ExceptionUtil;
 import play.modules.elasticsearch.util.ReflectionUtil;
 import play.mvc.Router;
 
@@ -154,6 +153,13 @@ public class ElasticSearchPlugin extends PlayPlugin {
    */
   @Override
   public void onApplicationStart() {
+
+    String enabled = Play.configuration.getProperty("elasticsearch.enabled", "true");
+    if (!"true".equalsIgnoreCase(enabled)) {
+      Logger.info("Elasticsearch module disabled");
+      return;
+    }
+
     // (re-)set caches
     mappers = new ConcurrentHashMap<>();
     modelLookup = new ConcurrentHashMap<>();
