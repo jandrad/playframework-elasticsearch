@@ -40,7 +40,7 @@ public class ElasticSearchIgnoreTest extends MappingTest {
 		mapping.startObject("properties");
 
 		mapping.startObject("test");
-		mapping.field("type", "string");
+		mapping.field("type", "text");
 		mapping.endObject();
 
 		// Play model id

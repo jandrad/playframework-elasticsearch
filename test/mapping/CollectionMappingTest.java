@@ -59,7 +59,7 @@ public class CollectionMappingTest extends MappingTest {
 		mapping.startObject("properties");
 
 		mapping.startObject("strings");
-		mapping.field("type", "string");
+		mapping.field("type", "text");
 		mapping.endObject();
 
 		// Play model id
@@ -98,7 +98,7 @@ public class CollectionMappingTest extends MappingTest {
 		mapping.startObject("properties");
 
 		mapping.startObject("include");
-		mapping.field("type", "string");
+		mapping.field("type", "text");
 		mapping.endObject();
 
 		mapping.endObject();

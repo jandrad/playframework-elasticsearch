@@ -52,7 +52,7 @@ public class SimpleMappingTest extends MappingTest {
 		mapping.startObject("properties");
 
 		mapping.startObject("_string");
-		mapping.field("type", "string");
+		mapping.field("type", "text");
 		mapping.endObject();
 
 		mapping.startObject("_integer1");

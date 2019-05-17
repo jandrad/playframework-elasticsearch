@@ -42,7 +42,7 @@ public class TtlTest extends MappingTest {
 
     // Order matters, see AbstractFieldMapper
     mapping.startObject("name");
-    mapping.field("type", "string");
+    mapping.field("type", "text");
     mapping.endObject();
 
     mapping.startObject("id");

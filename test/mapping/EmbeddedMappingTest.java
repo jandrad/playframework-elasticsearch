@@ -87,7 +87,7 @@ public class EmbeddedMappingTest extends MappingTest {
 		mapping.startObject("properties");
 
 		mapping.startObject("embedded");
-		mapping.field("type", "string");
+		mapping.field("type", "text");
 		mapping.endObject();
 
 		// Play model id
@@ -124,7 +124,7 @@ public class EmbeddedMappingTest extends MappingTest {
 		mapping.startObject("properties");
 
 		mapping.startObject("embedded.include");
-		mapping.field("type", "string");
+		mapping.field("type", "text");
 		mapping.endObject();
 
 		// Play model id
@@ -161,7 +161,7 @@ public class EmbeddedMappingTest extends MappingTest {
 		mapping.startObject("properties");
 
 		mapping.startObject("prefix_include");
-		mapping.field("type", "string");
+		mapping.field("type", "text");
 		mapping.endObject();
 
 		// Play model id
@@ -198,7 +198,7 @@ public class EmbeddedMappingTest extends MappingTest {
 		mapping.startObject("properties");
 
 		mapping.startObject("embedded.include");
-		mapping.field("type", "string");
+		mapping.field("type", "text");
 		mapping.endObject();
 
 		mapping.startObject("embedded.exclude");
@@ -242,7 +242,7 @@ public class EmbeddedMappingTest extends MappingTest {
 		mapping.startObject("properties");
 
 		mapping.startObject("include");
-		mapping.field("type", "string");
+		mapping.field("type", "text");
 		mapping.endObject();
 
 		mapping.endObject();
@@ -285,7 +285,7 @@ public class EmbeddedMappingTest extends MappingTest {
 		mapping.startObject("properties");
 
 		mapping.startObject("include");
-		mapping.field("type", "string");
+		mapping.field("type", "text");
 		mapping.endObject();
 
 		mapping.endObject();

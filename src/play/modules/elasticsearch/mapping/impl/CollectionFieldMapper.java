@@ -95,7 +95,7 @@ public class CollectionFieldMapper<M> extends AbstractFieldMapper<M> {
           builder.endObject();
         }
       } else {
-        boolean isStringType = type.equals("string");
+        boolean isStringType = type.equals("text");
 
         // Flat mode uses primitive values or toString
         for (Object object : (Collection<?>) value) {

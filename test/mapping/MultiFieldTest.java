@@ -20,8 +20,8 @@ public class MultiFieldTest extends MappingTest {
 	@ElasticSearchable
 	public static class TestModel extends Model {
 		@ElasticSearchMultiField({
-				@ElasticSearchField(index = Index.not_analyzed, store = Store.yes, type = "string"),
-				@ElasticSearchField(index = Index.analyzed, store = Store.no, type = "string")
+				@ElasticSearchField(index = Index.not_analyzed, store = Store.yes, type = "text"),
+				@ElasticSearchField(index = Index.analyzed, store = Store.no, type = "text")
 		})
 		public String name;
 	}
@@ -45,12 +45,12 @@ public class MultiFieldTest extends MappingTest {
 		mapping.field("type", "multi_field");
 		mapping.startObject("fields");
 		mapping.startObject("untouched");
-		mapping.field("type", "string");
+		mapping.field("type", "text");
 		mapping.field("index", "not_analyzed");
 		mapping.field("store", "yes");
 		mapping.endObject();
 		mapping.startObject("name");
-		mapping.field("type", "string");
+		mapping.field("type", "text");
 		mapping.field("index", "analyzed");
 		mapping.field("store", "no");
 		mapping.endObject();
