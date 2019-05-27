@@ -67,11 +67,6 @@ public class ElasticSearchPlugin extends PlayPlugin {
   private static EmbeddedElastic embeddedElastic = null;
 
   /**
-   * The started.
-   */
-  private static boolean started = false;
-
-  /**
    * The mapper factory
    */
   private static MapperFactory mapperFactory = new DefaultMapperFactory();
@@ -208,7 +203,7 @@ public class ElasticSearchPlugin extends PlayPlugin {
     }
 
     // Make sure it doesn't get started more than once
-    if ((client != null) || started) {
+    if ((client != null)) {
       Logger.debug("Elastic Search Started Already!");
       return;
     }
@@ -315,6 +310,7 @@ public class ElasticSearchPlugin extends PlayPlugin {
 
     if (client != null) {
       client.close();
+      client = null;
     }
   }
 
