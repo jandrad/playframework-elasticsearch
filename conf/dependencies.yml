@@ -1,4 +1,4 @@
-self: play -> elasticsearch 0.7.3
+self: play -> elasticsearch 0.8.0
 
 # Application dependencies
 
@@ -7,4 +7,5 @@ require:
 - play -> crud
 - org.elasticsearch -> elasticsearch 6.7.2
 - org.elasticsearch.client -> transport 6.7.2
+- org.elasticsearch.client -> elasticsearch-rest-high-level-client 6.7.2
 - pl.allegro.tech -> embedded-elasticsearch 2.7.0

@@ -16,6 +16,7 @@
 package play.modules.elasticsearch;
 
 import org.elasticsearch.client.Client;
+import org.elasticsearch.client.RestHighLevelClient;
 import play.Logger;
 import play.db.Model;
 import play.modules.elasticsearch.adapter.ElasticSearchAdapter;
@@ -37,7 +38,7 @@ public class ElasticSearchIndexAction implements play.libs.F.Action<ElasticSearc
     // Log Debug
     Logger.debug("Elastic Search - %s Event", message);
 
-    Client client = ElasticSearchPlugin.client();
+    RestHighLevelClient client = ElasticSearchPlugin.client();
     Model object = message.getObject();
     @SuppressWarnings("unchecked")
     ModelMapper<Model> mapper = (ModelMapper<Model>) ElasticSearchPlugin

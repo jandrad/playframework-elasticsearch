@@ -17,13 +17,15 @@ package play.modules.elasticsearch.adapter;
 
 import java.lang.reflect.Field;
 import java.util.List;
-import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
-import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
-import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequest;
+import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.delete.DeleteResponse;
+import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
-import org.elasticsearch.client.Client;
-import org.elasticsearch.client.Requests;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.client.indices.CreateIndexRequest;
+import org.elasticsearch.client.indices.CreateIndexResponse;
+import org.elasticsearch.client.indices.PutMappingRequest;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
@@ -49,7 +51,8 @@ public abstract class ElasticSearchAdapter {
    * @param client the client
    * @param mapper the model mapper
    */
-  public static <T extends Model> void startIndex(Client client, ModelMapper<T> mapper) {
+  public static <T extends Model> void startIndex(RestHighLevelClient client,
+      ModelMapper<T> mapper) {
     createIndex(client, mapper);
     createType(client, mapper);
   }
@@ -60,7 +63,7 @@ public abstract class ElasticSearchAdapter {
    * @param client the client
    * @param mapper the model mapper
    */
-  private static void createIndex(Client client, ModelMapper<?> mapper) {
+  private static void createIndex(RestHighLevelClient client, ModelMapper<?> mapper) {
     String indexName = mapper.getIndexName();
 
     try {
@@ -68,9 +71,8 @@ public abstract class ElasticSearchAdapter {
       XContentBuilder settings = MappingUtil.getSettingsMapper(mapper);
 
       Logger.debug("Starting Elastic Search Index %s", indexName);
-      CreateIndexResponse response = client.admin().indices()
-          .create(new CreateIndexRequest(indexName).settings(settings))
-          .actionGet();
+      CreateIndexResponse response = client.indices()
+          .create(new CreateIndexRequest(indexName).settings(settings), RequestOptions.DEFAULT);
 
       Logger.debug("Response: %s", response);
 
@@ -88,17 +90,19 @@ public abstract class ElasticSearchAdapter {
    * @param client the client
    * @param mapper the model mapper
    */
-  private static void createType(Client client, ModelMapper<?> mapper) {
+  private static void createType(RestHighLevelClient client, ModelMapper<?> mapper) {
     String indexName = mapper.getIndexName();
     String typeName = mapper.getTypeName();
 
     try {
       Logger.debug("Create Elastic Search Type %s/%s", indexName, typeName);
-      PutMappingRequest request = Requests.putMappingRequest(indexName).type(typeName);
+      PutMappingRequest request = new PutMappingRequest(indexName);
+      //TODO: Validate if the type is necessary
+//      Requests.putMappingRequest(indexName).type(typeName);
       XContentBuilder mapping = MappingUtil.getMapping(mapper);
       Logger.debug("Type mapping: \n %s", Strings.toString(mapping));
       request.source(mapping);
-      client.admin().indices().putMapping(request).actionGet();
+      client.indices().putMapping(request, RequestOptions.DEFAULT);
     } catch (IndexCreationException iaee) {
       Logger.debug("Index already exists: %s", indexName);
 
@@ -116,7 +120,8 @@ public abstract class ElasticSearchAdapter {
    * @param model the model
    * @throws Exception the exception
    */
-  public static <T extends Model> void indexModel(Client client, ModelMapper<T> mapper, T model)
+  public static <T extends Model> void indexModel(RestHighLevelClient client, ModelMapper<T> mapper,
+      T model)
       throws Exception {
     Logger.debug("Index Model: %s", model);
 
@@ -141,9 +146,10 @@ public abstract class ElasticSearchAdapter {
       contentBuilder = XContentFactory.jsonBuilder().prettyPrint();
       mapper.addModel(model, contentBuilder);
       Logger.debug("Index json: %s", contentBuilder.toString());
-      IndexResponse response = client.prepareIndex(indexName, typeName, documentId)
-          .setSource(contentBuilder).execute().actionGet();
 
+      IndexResponse response = client
+          .index(new IndexRequest(indexName, typeName, documentId).source(contentBuilder),
+              RequestOptions.DEFAULT);
       // Log Debug
       Logger.debug("Index Response: %s", response);
 
@@ -165,14 +171,15 @@ public abstract class ElasticSearchAdapter {
    * @param model the model
    * @throws Exception the exception
    */
-  public static <T extends Model> void deleteModel(Client client, ModelMapper<T> mapper, T model)
+  public static <T extends Model> void deleteModel(RestHighLevelClient client,
+      ModelMapper<T> mapper, T model)
       throws Exception {
     Logger.debug("Delete Model: %s", model);
     String indexName = mapper.getIndexName();
     String typeName = mapper.getTypeName();
     String documentId = getDocumentId(mapper, model);
-    DeleteResponse response = client.prepareDelete(indexName, typeName, documentId)
-        .execute().actionGet();
+    DeleteResponse response = client
+        .delete(new DeleteRequest(indexName, typeName, documentId), RequestOptions.DEFAULT);
     Logger.debug("Delete Response: %s", response);
   }
 
